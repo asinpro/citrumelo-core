@@ -37,11 +37,13 @@ export interface IScene {
 
     removeImmediately(object: GameObject): void;
 
-    getObjectByName(name: string): GameObject;
+    getObjectByName(name: string): GameObject | null;
 
-    getFirstObjectByType(type: any): GameObject;
+    getObjectsByName(name: string): Generator<GameObject>;
 
-    getObjectsByType(type: any): GameObject[];
+    getFirstObjectByType(type: any): GameObject | null;
+
+    getObjectsByType(type: any): Generator<GameObject>;
 }
 
 class SceneManagerSceneData {
@@ -80,7 +82,7 @@ function removeSceneManagerSceneDataFromArray(st: SceneManagerSceneData, v: Scen
 }
 
 export class SceneManager {
-    private _lastCreatedScene: SceneManagerSceneData;
+    private _lastCreatedScene!: SceneManagerSceneData;
 
     private _runningScenes: SceneManagerSceneData[] = [];
     private _scenesToCreate: SceneManagerSceneData[] = [];
@@ -435,11 +437,7 @@ export class SceneManager {
     }
 
     public getCurrentScene() {
-        if (!this._lastCreatedScene) {
-            return null;
-        }
-
-        return this._lastCreatedScene.scene;
+        return this._lastCreatedScene?.scene;
     }
 
     public setCurrentScene(value: IScene): void {

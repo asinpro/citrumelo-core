@@ -26,7 +26,6 @@ export class Scene implements IScene {
      */
     public destroy() {
         this._realScene.destroy();
-        this._realScene = null;
     }
 
     /**
@@ -120,7 +119,7 @@ export class Scene implements IScene {
 
     /**
      * Gets a reference to a GameObject by passing that object's name in.
-     * Often the name property will be set via a level editor such as the Flash IDE.
+     * Often the name property will be set via a level editor.
      * @param name The name property of the object you want to get a reference to.
      */
     public getObjectByName(name: string) {

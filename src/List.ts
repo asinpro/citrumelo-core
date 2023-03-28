@@ -52,9 +52,9 @@ export class List<T> {
         return this.head === null;
     }
 
-    public forEach(callback: (node: T) => void) {
+    *[Symbol.iterator]() {
         for (let node = this.head; node; node = node.next!) {
-            callback.call(null, node!);
+            yield node;
         }
     }
 

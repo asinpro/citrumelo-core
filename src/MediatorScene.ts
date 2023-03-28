@@ -33,7 +33,9 @@ export class MediatorScene {
 
         // this._poolObjects.length = 0;
 
-        this._objects.forEach(o => this.removeImmediately(o));
+        for (const o of this._objects) {
+            this.removeImmediately(o);
+        }
 
         // if (this._view) {
         //     this._view.destroy();
@@ -62,15 +64,15 @@ export class MediatorScene {
     * Finally, this method updates the View manager.
     */
     public update(timeDelta: number) {
-        this._objects.forEach(o => {
-            if (o.kill) {
-                this.removeImmediately(o);
+        for (const object of this._objects) {
+            if (object.kill) {
+                this.removeImmediately(object);
             } else {
-                if (o.updateCallEnabled) {
-                    o.update(timeDelta);
+                if (object.updateCallEnabled) {
+                    object.update(timeDelta);
                 }
             }
-        });
+        }
 
         // this._poolObjects.forEach(poolObject => {
         //     poolObject.updatePhysics(timeDelta);
@@ -163,9 +165,9 @@ export class MediatorScene {
     * @param name The name property of the object you want to get a reference to.
     */
     public getObjectByName(name: string) {
-        for (let node = this._objects.head; node; node = node.next!) {
-            if (node.name == name) {
-                return node;
+        for (const object of this._objects) {
+            if (object.name == name) {
+                return object;
             }
         }
 
@@ -197,14 +199,12 @@ export class MediatorScene {
     * coins plus enemies that you've named exactly the same. Then you'd loop through the returned vector to change properties or whatever you want.
     * @param name The name property of the object you want to get a reference to.
     */
-    public getObjectsByName(name: string) {
-        const objects: GameObject[] = [];
-
-        this._objects.forEach(o => {
-            if (o.name == name) {
-                objects.push(o);
+    public *getObjectsByName(name: string) {
+        for (const object of this._objects) {
+            if (object.name == name) {
+                yield object;
             }
-        });
+        }
 
         // if (_poolObjects.length > 0) {
         //                 poolObject: PoolObject;
@@ -218,7 +218,6 @@ export class MediatorScene {
         //             }
         //     }
         //
-        return objects;
     }
 
     /**
@@ -227,11 +226,11 @@ export class MediatorScene {
     * @param type The class of the object you want to get a reference to.
     */
     public getFirstObjectByType(type: any) {
-        for (let node = this._objects.head; node; node = node.next!) {
-            if (node.constructor == type) {
-                return node;
+        for (const object of this._objects) {
+            if (object.constructor == type) {
+                return object;
             }
-        };
+        }
 
         //         if (_poolObjects.length > 0) {
         //             poolObject: PoolObject;
@@ -261,13 +260,12 @@ export class MediatorScene {
     * of type "Coin" via this method. Then you'd loop through the returned array to add your listener to the coins' event.
     * @param type The class of the object you want to get a reference to.
     */
-    public getObjectsByType(type: any) {
-        const objects: GameObject[] = [];
-        this._objects.forEach(o => {
-            if (o.constructor == type) {
-                objects.push(o);
+    public *getObjectsByType(type: any) {
+        for (const object of this._objects) {
+            if (object.constructor == type) {
+                yield object;
             }
-        });
+        }
 
         //         if (_poolObjects.length > 0) {
         //             poolObject: PoolObject;
@@ -280,8 +278,6 @@ export class MediatorScene {
         //                 });
         //         }
         // }
-
-        return objects;
     }
 
     /**
@@ -289,17 +285,17 @@ export class MediatorScene {
     * @param except GameObjects you want to save.
     */
     public killAllObjects(...except: GameObject[]) {
-        this._objects.forEach(o => {
-            if (~except.indexOf(o)) {
-                o.kill = true;
+        for (const object of this._objects) {
+            if (~except.indexOf(object)) {
+                object.kill = true;
             }
-        });
+        }
     }
 
     /**
     * Contains all the objects added to the Scene and not killed.
     */
     public get objects() {
-        return this._objects;
+        return [...this._objects];
     }
 }

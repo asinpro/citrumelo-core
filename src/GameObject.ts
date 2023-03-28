@@ -6,7 +6,7 @@ export class GameObject {
     /**
      * A name to identify easily an objet. You may use duplicate name if you wish.
      */
-    public name: string;
+    public name!: string;
 
     /**
      * Set it to true if you want to remove, clean and destroy the object.
@@ -100,7 +100,7 @@ export class GameObject {
     /**
      * The initialize method usually calls this.
      */
-    public setParams(object: GameObject, params: Object): void {
+    public setParams(object: Record<string, any>, params: Record<string, any>): void {
         for (const param in params) {
             object[param] = params[param];
         }
