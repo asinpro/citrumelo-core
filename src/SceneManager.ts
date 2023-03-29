@@ -1,78 +1,4 @@
-import { GameObject } from "./GameObject";
-
-export enum SceneManagerMode {
-    /**
-    * In this mode, the StateManager will, at maximum, have 3 states running at the same time.
-    * One main state, One state to transition to, and a possible Pause state that will be on top.
-    */
-    SINGLE_MODE = "singleMode",
-    /**
-    * In this mode, the StateManager will allow you to define what happens with running states.
-    * You ask it to create states and it will run them.
-    */
-    USER_MODE = "userMode",
-}
-
-export interface IScene {
-    destroy(): void;
-
-    // get view(): AView;
-
-    preload(): boolean;
-
-    onPreloadComplete(event: any): void;
-
-    initialize(): void;
-
-    get playing(): boolean;
-    set playing(value: boolean);
-
-    update(timeDelta: number): void;
-
-    updatePause(timeDelta: number): void;
-
-    add(object: GameObject): GameObject;
-
-    remove(object: GameObject): void;
-
-    removeImmediately(object: GameObject): void;
-
-    getObjectByName(name: string): GameObject | null;
-
-    getObjectsByName(name: string): Generator<GameObject>;
-
-    getFirstObjectByType(type: any): GameObject | null;
-
-    getObjectsByType(type: any): Generator<GameObject>;
-}
-
-class SceneManagerSceneData {
-    public preloading = false;
-    // public transitionTween: EazeTween;
-    // public onTransitionComplete: Function;
-
-    constructor(
-        public name: string,
-        public scene: IScene,
-        public args?: any[],
-        public transition?: string,
-        public transitionTime?: number) {
-    }
-
-    public destroy() {
-        // this.transitionTween?.kill();
-        // this.transitionTween = null;
-        this.scene.destroy();
-    }
-
-    public get type() {
-        return this.scene.constructor;
-    }
-
-    // public clone() {
-    //     return new SceneManagerSceneData(this.name, this.scene, this.args, this.transition, this.transitionTime);
-    // }
-}
+import { SceneManagerMode, IScene, SceneManagerSceneData, Class, SceneTransition } from './types';
 
 function removeSceneManagerSceneDataFromArray(st: SceneManagerSceneData, v: SceneManagerSceneData[]) {
     let i = v.indexOf(st);
@@ -84,6 +10,7 @@ function removeSceneManagerSceneDataFromArray(st: SceneManagerSceneData, v: Scen
 export class SceneManager {
     private _lastCreatedScene!: SceneManagerSceneData;
 
+    private _definedscenes: SceneManagerSceneData[] = [];
     private _runningScenes: SceneManagerSceneData[] = [];
     private _scenesToCreate: SceneManagerSceneData[] = [];
     private _scenesToDestroy: SceneManagerSceneData[] = [];
@@ -96,8 +23,7 @@ export class SceneManager {
      * Dispatched with a scene object, when that scene is removed/destroyed.
      */
     // public onsceneRemoved: Signal1;
-    // protected definedscenes: Vector.<SceneManagerSceneData>;
-    // protected definedsceneNames: Array = [];
+    private _definedsceneNames: string[] = [];
     // protected _ce: CitrusEngine;
     // protected _transitionQueue: Array;
 
@@ -116,12 +42,7 @@ export class SceneManager {
     ) {
         // onsceneAdded = new Signal1(IScene);
         // onsceneRemoved = new Signal1(IScene);
-        //
-        // definedscenes = new Vector.<SceneManagerSceneData>();
-        // runningscenes = new Vector.<SceneManagerSceneData>();
-        // scenesToCreate = new Vector.<SceneManagerSceneData>();
-        // scenesToDestroy = new Vector.<SceneManagerSceneData>();
-        //
+
         // _transitionQueue = [];
         // _ce = CitrusEngine.getInstance();
         // _ce.onPlayingChange.add(handlePlayingChanged);
@@ -145,29 +66,34 @@ export class SceneManager {
      * add a scene to the scene manager, defined by a name and a type (Class).
      * the params object can hold additional information such as arguments to pass when the scene is constructed.
      */
-    // public function add(name : String, type : Class, params : Object = null) : void {
-    // 	if (name == null || type == null)
-    // 		return;
-    //
-    // 	if (getDefinedSceneDataByName(name, false) != null)
-    // 		return;
-    //
-    // 	var sceneData : SceneManagerSceneData = new SceneManagerSceneData(name, type);
-    //
-    // 	if (params != null) {
-    // 		if ("args" in params && params.args is Array)
-    // 			sceneData.args = params.args;
-    // 		if ("transition" in params)
-    // 			sceneData.transition = params.transition;
-    // 		if ("transitionTime" in params)
-    // 			sceneData.transitionTime = params.transitionTime;
-    // 		if ("onTransitionComplete" in params)
-    // 			sceneData.onTransitionComplete = params.onTransitionComplete;
-    // 	}
-    //
-    // 	definedsceneNames.push(name);
-    // 	definedscenes.push(sceneData);
-    // }
+    public add(name: string, type: Class<any>, params?: Record<string, any>): void {
+        if (name == null || type == null)
+            return;
+
+        if (this.getDefinedSceneDataByName(name, false)) {
+            return;
+        }
+
+        const sceneData = new SceneManagerSceneData(name, type);
+
+        if (params) {
+            if ('args' in params && params.args) {
+                sceneData.args = params.args;
+            }
+            if ('transition' in params) {
+                sceneData.transition = params.transition;
+            }
+            if ('transitionTime' in params) {
+                sceneData.transitionTime = params.transitionTime;
+            }
+            if ('onTransitionComplete' in params) {
+                sceneData.onTransitionComplete = params.onTransitionComplete;
+            }
+        }
+
+        this._definedsceneNames.push(name);
+        this._definedscenes.push(sceneData);
+    }
 
     /**
      * Starts a new scene by name.
@@ -175,26 +101,30 @@ export class SceneManager {
      * if arguments for transition are set, this scene will come in via a transition,
      * by default, after a transition, every scene is destroyed except for the one who's transition is over.
      */
-    // public function start(name : String, destroy : Boolean = true, transition : String = null, transitionTime : Number = Number.NaN, onTransitionComplete : Function = null) : IScene {
-    // 	var sceneData : SceneManagerSceneData = getDefinedSceneDataByName(name);
-    // 	if (sceneData == null)
-    // 		return null;
-    //
-    // 	if (destroy)
-    // 		destroyAllButRunning();
-    //
-    // 	if (transition != null)
-    // 		sceneData.transition = transition;
-    //
-    // 	if (transitionTime >= 0)
-    // 		sceneData.transitionTime = transitionTime;
-    //
-    // 	if (onTransitionComplete != null)
-    // 		sceneData.onTransitionComplete = onTransitionComplete;
-    //
-    // 	return startsceneTransition(sceneData);
-    // }
-    //
+    public start(name: string, destroy: boolean = true, transition?: SceneTransition, transitionTime: number = 0, onTransitionComplete?: Function) {
+        const sceneData = this.getDefinedSceneDataByName(name);
+        if (!sceneData) {
+            return null;
+        }
+
+        if (destroy)
+            this.destroyAllButRunning();
+
+        if (transition) {
+            sceneData.transition = transition;
+        }
+
+        if (transitionTime >= 0) {
+            sceneData.transitionTime = transitionTime;
+        }
+
+        if (onTransitionComplete) {
+            sceneData.onTransitionComplete = onTransitionComplete;
+        }
+
+        return this.startSceneTransition(sceneData);
+    }
+
     // public function stop(name : String):IScene {
     // 	var sceneData : SceneManagerSceneData = getRunningSceneDataByName(name);
     // 	if (sceneData == null)
@@ -216,15 +146,18 @@ export class SceneManager {
     /**
      * get SceneManagerSceneData from the definedscenes list. (scene definition)
      */
-    // protected function getDefinedSceneDataByName(name : String, clone : Boolean = true) : SceneManagerSceneData {
-    // 	for each (var sceneData : SceneManagerSceneData in definedscenes)
-    // 		if (sceneData.name == name)
-    // 			if (clone)
-    // 				return sceneData.clone();
-    // 			else
-    // 				return sceneData;
-    // 	return null;
-    // }
+    private getDefinedSceneDataByName(name: string, clone: boolean = true) {
+        for (const sceneData of this._definedscenes) {
+            if (sceneData.name === name) {
+                if (clone) {
+                    return sceneData.clone();
+                } else {
+                    return sceneData;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * get SceneManagerSceneData from the running scenes list.
@@ -239,71 +172,68 @@ export class SceneManager {
     /**
      * creates the scene object , set it in the SceneManagerSceneData, and returns it.
      */
-    // protected function createscene(sceneData : SceneManagerSceneData) : IScene {
-    // 	var scene : IScene = createObjectWithArgs(sceneData.type, sceneData.args);
-    // 	sceneData.scene = scene;
-    // 	return scene;
-    // }
+    protected createScene(sceneData: SceneManagerSceneData) {
+        const scene = this.createObjectWithArgs(sceneData.type, sceneData.args);
+        sceneData.scene = scene;
+        return scene;
+    }
 
     /**
      * this creates the transition and starts it if it exists.
      * in any case the scene is then queued up in scenesToCreate.
      */
-    // protected function startsceneTransition(sceneData : SceneManagerSceneData) : IScene {
-    // 	var transition : String = sceneData.transition;
-    // 	var transitionTime : Number = sceneData.transitionTime;
-    // 	var scene : IScene = createscene(sceneData);
-    //
-    // 	if (scene == null)
-    // 		return null;
-    //
-    // 	if (SceneTransition.exists(transition)) {
-    // 		switch (transition) {
-    // 			case SceneTransition.TRANSITION_FADEOUT :
-    // 			case SceneTransition.TRANSITION_FADEIN :
-    // 				sceneData.transitionTween = new EazeTween(scene, false);
-    // 				sceneData.transitionTween.from(transitionTime, {alpha:0}).easing(Linear.easeNone);
-    // 				break;
-    // 			case SceneTransition.TRANSITION_MOVEINLEFT :
-    // 				sceneData.transitionTween = new EazeTween(scene, false);
-    // 				sceneData.transitionTween.from(transitionTime, {x:-_ce.screenWidth}).easing(Linear.easeNone);
-    // 				break;
-    // 			case SceneTransition.TRANSITION_MOVEINRIGHT :
-    // 				sceneData.transitionTween = new EazeTween(scene, false);
-    // 				sceneData.transitionTween.from(transitionTime, {x:_ce.screenWidth}).easing(Linear.easeNone);
-    // 				break;
-    // 			case SceneTransition.TRANSITION_MOVEINDOWN :
-    // 				sceneData.transitionTween = new EazeTween(scene, false);
-    // 				sceneData.transitionTween.from(transitionTime, {y:_ce.screenHeight}).easing(Linear.easeNone);
-    // 				break;
-    // 			case SceneTransition.TRANSITION_MOVEINUP :
-    // 				sceneData.transitionTween = new EazeTween(scene, false);
-    // 				sceneData.transitionTween.from(transitionTime, {y:-_ce.screenHeight}).easing(Linear.easeNone);
-    // 				break;
-    // 		}
-    //
-    // 		sceneData.transitionTween.updateNow();
-    // 		sceneData.transitionTween.onComplete(function() : void {
-    // 			switch (_sceneManagerMode) {
-    // 				case SceneManagerMode.SINGLE_MODE:
-    // 					destroyAllButRunningExcept(sceneData);
-    // 					break;
-    // 			}
-    //
-    // 			if (sceneData.onTransitionComplete != null)
-    // 				sceneData.onTransitionComplete();
-    //
-    // 			sceneData.transition = null;
-    // 			sceneData.transitionTime = NaN;
-    // 			sceneData.onTransitionComplete = null;
-    // 			sceneData.transitionTween = null;
-    // 		});
-    // 	}
-    //
-    // 	scenesToCreate.unshift(sceneData);
-    // 	return scene;
-    // }
-    //
+    protected startSceneTransition(sceneData: SceneManagerSceneData) {
+        const transition = sceneData.transition;
+        const transitionTime = sceneData.transitionTime;
+        const scene = this.createScene(sceneData);
+
+        if (transition !== undefined) {
+            switch (transition) {
+                case SceneTransition.TRANSITION_FADEOUT:
+                case SceneTransition.TRANSITION_FADEIN:
+                    sceneData.transitionTween = new EazeTween(scene, false);
+                    sceneData.transitionTween.from(transitionTime, { alpha: 0 }).easing(Linear.easeNone);
+                    break;
+                case SceneTransition.TRANSITION_MOVEINLEFT:
+                    sceneData.transitionTween = new EazeTween(scene, false);
+                    sceneData.transitionTween.from(transitionTime, { x: -_ce.screenWidth }).easing(Linear.easeNone);
+                    break;
+                case SceneTransition.TRANSITION_MOVEINRIGHT:
+                    sceneData.transitionTween = new EazeTween(scene, false);
+                    sceneData.transitionTween.from(transitionTime, { x: _ce.screenWidth }).easing(Linear.easeNone);
+                    break;
+                case SceneTransition.TRANSITION_MOVEINDOWN:
+                    sceneData.transitionTween = new EazeTween(scene, false);
+                    sceneData.transitionTween.from(transitionTime, { y: _ce.screenHeight }).easing(Linear.easeNone);
+                    break;
+                case SceneTransition.TRANSITION_MOVEINUP:
+                    sceneData.transitionTween = new EazeTween(scene, false);
+                    sceneData.transitionTween.from(transitionTime, { y: -_ce.screenHeight }).easing(Linear.easeNone);
+                    break;
+            }
+
+            sceneData.transitionTween.updateNow();
+            sceneData.transitionTween.onComplete(() => {
+                switch (this._sceneManagerMode) {
+                    case SceneManagerMode.SINGLE_MODE:
+                        this.destroyAllButRunningExcept(sceneData);
+                        break;
+                }
+
+                if (sceneData.onTransitionComplete != null)
+                    sceneData.onTransitionComplete();
+
+                sceneData.transition = null;
+                sceneData.transitionTime = NaN;
+                sceneData.onTransitionComplete = null;
+                sceneData.transitionTween = null;
+            });
+        }
+
+        this._scenesToCreate.unshift(sceneData);
+        return scene;
+    }
+
     // public function destroyPreviousScenes():void {
     // 	destroyAllButRunningExcept(lastCreatedscene);
     // }
@@ -311,34 +241,34 @@ export class SceneManager {
     /**
      * Destroy all but running scenes except specific by scene data.
      */
-    // protected function destroyAllButRunningExcept(sceneData : SceneManagerSceneData) : void {
-    // 	for each (var std : SceneManagerSceneData in scenesToCreate) {
-    // 		if (std == sceneData)
-    // 			continue;
-    // 		removesceneFromCE(sceneData);
-    // 	}
-    // 	scenesToCreate.length = 0;
-    //
-    // 	for each (var rscene : SceneManagerSceneData in runningscenes)
-    // 		if (scenesToDestroy.indexOf(rscene) == -1)
-    // 			scenesToDestroy.unshift(rscene);
-    // 	removeSceneManagerSceneDataFromVector(sceneData, scenesToDestroy);
-    // }
+    protected destroyAllButRunningExcept(sceneData: SceneManagerSceneData) {
+        for (const std of this._scenesToCreate) {
+            if (std == sceneData) {
+                continue;
+            }
+            this.removeSceneFromEngine(sceneData);
+        }
+        this._scenesToCreate.length = 0;
 
-    // protected function createObjectWithArgs(type : Class, args : Array = null) : IScene {
-    // 	if (args == null)
-    // 		return new type() as IScene;
-    // 	else if (args.length == 1)
-    // 		return new type(args[0]) as IScene;
-    // 	else if (args.length == 2)
-    // 		return new type(args[0], args[1]) as IScene;
-    // 	else if (args.length == 3)
-    // 		return new type(args[0], args[1], args[2]) as IScene;
-    // 	else if (args.length == 4)
-    // 		return new type(args[0], args[1], args[2], args[3]) as IScene;
-    // 	else
-    // 		return null;
-    // }
+        for (const rscene of this._runningScenes)
+        if (this._scenesToDestroy.indexOf(rscene) == -1) {
+            this._scenesToDestroy.unshift(rscene);
+        }
+        removeSceneManagerSceneDataFromArray(sceneData, this._scenesToDestroy);
+    }
+
+    protected createObjectWithArgs(type: Class<any>, ...args: any[]) {
+        if (args.length == 1) {
+            return new type(args[0]) as IScene;
+        } else if (args.length == 2) {
+            return new type(args[0], args[1]) as IScene;
+        } else if (args.length == 3) {
+            return new type(args[0], args[1], args[2]) as IScene;
+        } else if (args.length == 4) {
+            return new type(args[0], args[1], args[2], args[3]) as IScene;
+        }
+        return new type() as IScene;
+    }
 
     /**
      * Get the name of a scene object, as defined in sceneManager when the scene definition was added with sceneManager.add()
@@ -440,17 +370,17 @@ export class SceneManager {
         return this._lastCreatedScene?.scene;
     }
 
-    public setCurrentScene(value: IScene): void {
-        this.destroyAllButRunning();
-
-        if (value == null) {
-            return;
-        }
-
-        this._lastCreatedScene = new SceneManagerSceneData("scene(anonymous)", value);
-        // TODO rid off unshift
-        this._scenesToCreate.unshift(this._lastCreatedScene);
-    }
+    // public setCurrentScene(value: IScene): void {
+    //     this.destroyAllButRunning();
+    //
+    //     if (value == null) {
+    //         return;
+    //     }
+    //
+    //     this._lastCreatedScene = new SceneManagerSceneData("scene(anonymous)", value);
+    //     // TODO rid off unshift
+    //     this._scenesToCreate.unshift(this._lastCreatedScene);
+    // }
 
     private collectScenes() {
         if (this._scenesToDestroy.length > 0) {
