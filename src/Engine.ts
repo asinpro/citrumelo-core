@@ -1,4 +1,4 @@
-import { SceneManager, SceneManagerMode, IScene } from "./SceneManager";
+import { SceneManager } from './SceneManager'
 
 export class Engine {
     // public static const VERSION: String = "3.2.0";
@@ -47,7 +47,7 @@ export class Engine {
     // protected var _newScene: IScene;
     // protected var _sceneTransitionning: IScene;
     // protected var _sceneDisplayIndex: uint = 0;
-    private _playing = true;
+    private _playing = true
     // protected var _input: Input;
     //
     // protected var _fullScreen: Boolean = false;
@@ -65,9 +65,9 @@ export class Engine {
     //     return _instance;
     // }
 
-    private _sceneManager: SceneManager;
+    private _sceneManager = new SceneManager()
 
-    constructor(private _sceneManagerMode = SceneManagerMode.SINGLE_MODE) {
+    constructor() {
         // _instance = this;
         //
         // onPlayingChange = new Signal1(Boolean);
@@ -89,10 +89,6 @@ export class Engine {
         // _console.addCommand("set", handleConsoleSetCommand);
         // _console.addCommand("get", handleConsoleGetCommand);
         // addChild(_console);
-
-        // start scene manager before update starts
-        this._sceneManager = new SceneManager(this._sceneManagerMode);
-
         // //Set up input
         // _input = new Input();
         //
@@ -104,17 +100,17 @@ export class Engine {
     }
 
     public get sceneManager() {
-        return this._sceneManager;
+        return this._sceneManager
     }
 
     /**
-    * This is the game loop. It switches scenes if necessary, then calls update on the current scene.
-    */
+     * This is the game loop. It switches scenes if necessary, then calls update on the current scene.
+     */
     public update(delta: number) {
         //TODO The CE updates use the timeDelta to keep consistent speed during slow framerates. However, Box2D becomes unstable when changing timestep. Why?
-    	if (this._playing) {
-            this._sceneManager.update(delta);
-    	}
+        if (this._playing) {
+            this._sceneManager.update(delta)
+        }
 
         // this._input.citrus_internal::update();
     }
@@ -136,7 +132,7 @@ export class Engine {
         //
         // if (_scene)
         // 	_scene.destroy();
-        this.sceneManager.destroy();
+        this.sceneManager.destroy()
 
         // _input.destroy();
         // _sound.destroy();
@@ -158,7 +154,7 @@ export class Engine {
      * @return true if the Citrus Engine is playing
      */
     public get playing() {
-        return this._playing;
+        return this._playing
     }
 
     /**
@@ -172,10 +168,10 @@ export class Engine {
      */
     public set playing(value: boolean) {
         if (value == this._playing) {
-            return;
+            return
         }
 
-        this._playing = value;
+        this._playing = value
         // onPlayingChange.dispatch(_playing);
     }
 

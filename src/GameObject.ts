@@ -1,30 +1,30 @@
-let last_id = 0;
+let last_id = 0
 
 export class GameObject {
-    public readonly ID: number;
+    public readonly ID: number
 
     /**
      * A name to identify easily an objet. You may use duplicate name if you wish.
      */
-    public name!: string;
+    public name!: string
 
     /**
      * Set it to true if you want to remove, clean and destroy the object.
      */
-    public kill = false;
+    public kill = false
 
     /**
      * This property prevent the <code>update</code> method to be called by the enter frame, it will save performances.
      * Set it to true if you want to execute code in the <code>update</code> method.
      */
-    public updateCallEnabled = false;
+    public updateCallEnabled = false
 
     /**
      * Added to the Engine's render list via the Scene and the add method.
      */
-    public type = "classicObject";
+    public type = 'classicObject'
 
-    protected _initialized: Boolean = false;
+    protected _initialized: Boolean = false
     // protected var _ce:CitrusEngine;
     // protected var _parentScene : IScene;
 
@@ -41,32 +41,31 @@ export class GameObject {
      * @param params Any public properties or setters can be assigned values via this object.
      *
      */
-    constructor(private _params?: Object) {
+    constructor(private _params?: Record<string, any>) {
         // this._ce = CitrusEngine.getInstance(); // set shortcut to CE.
 
-        this.ID = last_id++;
+        this.ID = last_id++
 
         if (!this._params?.hasOwnProperty('name')) {
-            this.name = `GameObject_${this.ID}`;
+            this.name = `GameObject_${this.ID}`
         }
     }
 
-    public initialize(poolObjectParams?: Object): void {
+    public initialize(poolObjectParams?: Record<string, any>): void {
         // if (poolObjectParams) {
         // 	this._params = poolObjectParams;
         // }
 
-        if (this._params)
-            this.setParams(this, this._params);
-        else
-            this._initialized = true;
-
+        if (this._params) {
+            this.setParams(this._params)
+        }
+        this._initialized = true
     }
 
     /**
-    * handleAddedToScene is called once the object is added to its parent scene.
-    * at that time, everything necessary (such as the art object) for it to run, is setup.
-    */
+     * handleAddedToScene is called once the object is added to its parent scene.
+     * at that time, everything necessary (such as the art object) for it to run, is setup.
+     */
     // public function handleAddedToScene() : void {
     // }
 
@@ -83,7 +82,7 @@ export class GameObject {
      * Your choice.
      */
     public destroy() {
-        this._initialized = false;
+        this._initialized = false
         // this._params = null;
     }
 
@@ -100,11 +99,11 @@ export class GameObject {
     /**
      * The initialize method usually calls this.
      */
-    public setParams(object: Record<string, any>, params: Record<string, any>): void {
+    public setParams(params: Record<string, any>): void {
         for (const param in params) {
-            object[param] = params[param];
+            //@ts-ignore
+            this[param] = params[param]
         }
-        this._initialized = true;
     }
     //
     // citrus_internal function set parentScene(scene : IScene) : void {
@@ -116,10 +115,10 @@ export class GameObject {
     // }
 
     public get initialized() {
-        return this._initialized;
+        return this._initialized
     }
 
     public toString() {
-        return `GameObject $ID: ${this.ID} name: ${this.name}  type: ${this.type}`;
+        return `GameObject $ID: ${this.ID} name: ${this.name}  type: ${this.type}`
     }
 }

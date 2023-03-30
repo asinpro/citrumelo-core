@@ -1,6 +1,6 @@
-import { IScene } from "./SceneManager";
-import { MediatorScene } from "./MediatorScene";
-import { GameObject } from "./GameObject";
+import { IScene } from './SceneManager'
+import { MediatorScene } from './MediatorScene'
+import { GameObject } from './GameObject'
 
 export class Scene implements IScene {
     /**
@@ -8,47 +8,47 @@ export class Scene implements IScene {
      */
     // private _ce: GameEngine;
 
-    private _realScene: MediatorScene;
+    private _realScene: MediatorScene
 
     // private _input: Input;
 
-    private _initialized: boolean = false;
+    private _initialized: boolean = false
 
-    public playing = false;
+    public playing = false
 
     constructor() {
         // _ce = GameEngine.getInstance();
-        this._realScene = new MediatorScene(this);
+        this._realScene = new MediatorScene(this)
     }
 
     /**
      * Called by the Engine.
      */
     public destroy() {
-        this._realScene.destroy();
+        this._realScene.destroy()
     }
 
     /**
      * Gets a reference to this state's view manager. Take a look at the class definition for more information about this.
      */
     public get view() {
-        return this._realScene.view;
+        return this._realScene.view
     }
 
     public get initialized() {
-        return this._initialized;
+        return this._initialized
     }
 
     public preload(): boolean {
         // this._realScene.view = this.createView();
         // this._input = _ce.input;
-        return false;
+        return false
     }
 
     public onPreloadComplete(event: any) {
-        this.initialize();
+        this.initialize()
         // this._ce.sceneManager.destroyPreviousScenes();
-        this.playing = true;
+        this.playing = true
     }
 
     /**
@@ -57,7 +57,7 @@ export class Scene implements IScene {
      * state in the constructur. You should call it in this initialize() method.
      */
     public initialize() {
-        console.log('Init scene');
+        console.log('Init scene')
     }
 
     /**
@@ -66,14 +66,14 @@ export class Scene implements IScene {
      * Finally, this method updates the View manager.
      */
     public update(timeDelta: number) {
-        this._realScene.update(timeDelta);
+        this._realScene.update(timeDelta)
     }
 
     /**
      * This method is called when the Scene is paused (it does not update objects or views)
      */
     public updatePause(timeDelta: number) {
-        this._realScene.updatePause(timeDelta);
+        this._realScene.updatePause(timeDelta)
     }
 
     /**
@@ -82,7 +82,7 @@ export class Scene implements IScene {
      * @return The GameObject that you passed in. Useful for linking commands together.
      */
     public add(object: GameObject) {
-        return this._realScene.add(object);
+        return this._realScene.add(object)
     }
 
     /**
@@ -100,7 +100,7 @@ export class Scene implements IScene {
      * Alternatively, you can just set the object's kill property to true. That's all this method does at the moment.
     /*/
     public remove(object: GameObject) {
-        this._realScene.remove(object);
+        this._realScene.remove(object)
     }
 
     /**
@@ -114,7 +114,7 @@ export class Scene implements IScene {
      * - effects unknown with nape.
      */
     public removeImmediately(object: GameObject) {
-        this._realScene.removeImmediately(object);
+        this._realScene.removeImmediately(object)
     }
 
     /**
@@ -123,7 +123,7 @@ export class Scene implements IScene {
      * @param name The name property of the object you want to get a reference to.
      */
     public getObjectByName(name: string) {
-        return this._realScene.getObjectByName(name);
+        return this._realScene.getObjectByName(name)
     }
 
     /**
@@ -133,7 +133,7 @@ export class Scene implements IScene {
      * @param name The name property of the object you want to get a reference to.
      */
     public getObjectsByName(name: string) {
-        return this._realScene.getObjectsByName(name);
+        return this._realScene.getObjectsByName(name)
     }
 
     /**
@@ -142,7 +142,7 @@ export class Scene implements IScene {
      * @param type The class of the object you want to get a reference to.
      */
     public getFirstObjectByType(type: any) {
-        return this._realScene.getFirstObjectByType(type);
+        return this._realScene.getFirstObjectByType(type)
     }
 
     /**
@@ -152,7 +152,7 @@ export class Scene implements IScene {
      * @param type The class of the object you want to get a reference to.
      */
     public getObjectsByType(type: any) {
-        return this._realScene.getObjectsByType(type);
+        return this._realScene.getObjectsByType(type)
     }
 
     /**
@@ -160,14 +160,14 @@ export class Scene implements IScene {
      * @param except GameObjects you want to save.
      */
     public killAllObjects(...except: GameObject[]) {
-        this._realScene.killAllObjects(...except);
+        this._realScene.killAllObjects(...except)
     }
 
     /**
      * Contains all the objects added to the State and not killed.
      */
-    public get objects() {
-        return this._realScene.objects;
+    public *getAll() {
+        yield* this._realScene.getAll()
     }
 
     /**

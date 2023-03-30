@@ -1,0 +1,9 @@
+
+.pnpm-debug.log
+pnpm-lock.yaml
+.prettierignore
+
+**/.git
+**/node_modules
+**/dist
+**/.parcel-cache
