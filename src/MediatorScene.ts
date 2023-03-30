@@ -1,6 +1,5 @@
 import { GameObject } from './GameObject'
 import { IScene } from './SceneManager'
-import { List } from './List'
 // import { AView } from 'AView.js';
 
 /**
