@@ -1,66 +1,67 @@
-import { GameObject } from './GameObject'
+import { GameObject } from './GameObject';
 
 export interface IScene {
     // get view(): AView;
 
-    preload(): boolean
-    onPreloadComplete(event: any): void
-    initialize(): void
-    destroy(): void
+    preload(): boolean;
+    onPreloadComplete(event: any): void;
+    initialize(): void;
+    destroy(): void;
 
-    get playing(): boolean
-    set playing(value: boolean)
+    get playing(): boolean;
+    set playing(value: boolean);
 
-    update(timeDelta: number): void
-    updatePause(timeDelta: number): void
+    update(timeDelta: number): void;
+    updatePause(timeDelta: number): void;
 
-    add(object: GameObject): GameObject
-    remove(object: GameObject): void
-    removeImmediately(object: GameObject): void
-    killAllObjects(...except: GameObject[]): void
+    add(object: GameObject): GameObject;
+    remove(object: GameObject): void;
+    removeImmediately(object: GameObject): void;
+    killAllObjects(...except: GameObject[]): void;
 
-    getObjectByName(name: string): GameObject | null
-    getObjectsByName(name: string): Generator<GameObject>
-    getFirstObjectByType(type: any): GameObject | null
-    getObjectsByType(type: any): Generator<GameObject>
-    getAll(): Generator<GameObject>
+    getObjectByName(name: string): GameObject | null;
+    getObjectsByName(name: string): Generator<GameObject>;
+    getFirstObjectByType(type: any): GameObject | null;
+    getObjectsByType(type: any): Generator<GameObject>;
+    getAll(): Generator<GameObject>;
 }
 
 export class SceneManager {
-    private _scene!: IScene
-    private _newScene: IScene | null = null
-    private _sceneTransitionning: IScene | null = null
-    private _futureScene: IScene | null = null
+    private _scene!: IScene;
+    private _newScene: IScene | null = null;
+    private _sceneTransitionning: IScene | null = null;
+    private _futureScene: IScene | null = null;
 
     public destroy() {
-        this._scene?.destroy()
+        this._scene?.destroy();
+        this._futureScene?.destroy();
     }
 
     public update(delta: number) {
         //Change scenes if it has been requested
         if (this._newScene) {
-            this._scene?.destroy()
+            this._scene?.destroy();
 
-            this._scene = this._newScene
-            this._newScene = null
+            this._scene = this._newScene;
+            this._newScene = null;
 
             if (this._futureScene) {
-                this._futureScene = null
+                this._futureScene = null;
             } else {
-                this._scene.initialize()
+                this._scene.initialize();
             }
         }
 
         if (this._sceneTransitionning) {
-            this._futureScene = this._sceneTransitionning
-            this._sceneTransitionning = null
+            this._futureScene = this._sceneTransitionning;
+            this._sceneTransitionning = null;
 
-            this._futureScene.initialize()
+            this._futureScene.initialize();
         }
 
         //Update the scene
-        this._scene.update(delta)
-        this._futureScene?.update(delta)
+        this._scene?.update(delta);
+        this._futureScene?.update(delta);
     }
 
     /**
@@ -73,11 +74,11 @@ export class SceneManager {
      */
     public get scene() {
         if (this._futureScene) {
-            return this._futureScene
+            return this._futureScene;
         } else if (this._newScene) {
-            return this._newScene
+            return this._newScene;
         }
-        return this._scene
+        return this._scene;
     }
 
     /**
@@ -85,7 +86,7 @@ export class SceneManager {
      * However, if you use the scene getter, it will grab the new one for you, so everything should work out just fine.
      */
     public set scene(value: IScene) {
-        this._newScene = value
+        this._newScene = value;
     }
 
     /**
@@ -93,7 +94,7 @@ export class SceneManager {
      * available via scene getter before a scene update.
      */
     public get futureScene() {
-        return this._futureScene || this._sceneTransitionning
+        return this._futureScene || this._sceneTransitionning;
     }
 
     /**
@@ -102,6 +103,6 @@ export class SceneManager {
      * on Starling and the futureScene on the display list (which is absolutely doable).
      */
     public set futureScene(value: IScene | null) {
-        this._sceneTransitionning = value
+        this._sceneTransitionning = value;
     }
 }

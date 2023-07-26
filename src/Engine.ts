@@ -1,12 +1,12 @@
-import { SceneManager } from './SceneManager'
+import { SceneManager } from './SceneManager';
 
 export class Engine {
-    public playing = true
+    public playing = true;
 
-    private _sceneManager = new SceneManager()
+    private _sceneManager = new SceneManager();
 
     public get sceneManager() {
-        return this._sceneManager
+        return this._sceneManager;
     }
 
     /**
@@ -14,7 +14,7 @@ export class Engine {
      */
     public update(delta: number) {
         if (this.playing) {
-            this._sceneManager.update(delta)
+            this._sceneManager.update(delta);
         }
     }
 
@@ -22,6 +22,6 @@ export class Engine {
      * Destroy the Engine
      */
     public destroy() {
-        this.sceneManager.destroy()
+        this.sceneManager.destroy();
     }
 }
